@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use App\Models\Supplier;
+use App\Models\Country;
+use App\Models\Port;
+use App\Models\FavoriteCountry;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
-use App\Models\Supplier;
-use App\Models\Product;
-use App\Models\Country;
 use App\Services\SentimentService;
 use App\Services\RiskScoringService;
-use App\Models\Port;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        
         // Negara yang dipilih
         $selectedCountry = request('country') ?? 'ID';
 
@@ -35,30 +37,8 @@ class DashboardController extends Controller
             $country->id
         )->count();
 
-        $totalProducts = Product::whereHas('supplier.country', function ($q) use ($selectedCountry) {
-            $q->where('code', $selectedCountry);
-        })->count();
-
         $totalCountries = Country::count();
 
-        // Risk
-        $highRisk = Product::whereHas('supplier.country', function ($q) use ($selectedCountry) {
-                $q->where('code', $selectedCountry);
-            })
-            ->where('risk_score', '>=', 80)
-            ->count();
-
-        $mediumRisk = Product::whereHas('supplier.country', function ($q) use ($selectedCountry) {
-                $q->where('code', $selectedCountry);
-            })
-            ->whereBetween('risk_score', [50,79])
-            ->count();
-
-        $lowRisk = Product::whereHas('supplier.country', function ($q) use ($selectedCountry) {
-                $q->where('code', $selectedCountry);
-            })
-            ->where('risk_score', '<', 50)
-            ->count();
 
         $exchangeRate = [];
         $currencyHistory = [];
@@ -131,6 +111,21 @@ try {
 
     }
 
+    if ($response->successful()) {
+
+    $data = $response->json();
+
+    if (
+        isset($data[0]) &&
+        isset($data[0]['languages'])
+    ) {
+
+        $language = implode(', ', array_values($data[0]['languages']));
+
+    }
+
+}
+
 } catch (\Exception $e) {
 
     $exchangeRate = [];
@@ -169,50 +164,83 @@ try {
             }
 
             // WEATHER
-            try {
+try {
 
-                $capital = $supplier->country->capital;
+    if (
+        $supplier->country &&
+        $supplier->country->latitude &&
+        $supplier->country->longitude
+    ) {
 
-                if ($capital) {
+        $response = Http::timeout(10)->get(
+            'https://api.open-meteo.com/v1/forecast',
+            [
+                'latitude' => $supplier->country->latitude,
+                'longitude' => $supplier->country->longitude,
 
-                    $response = Http::timeout(10)->get(
-                        'https://wttr.in/' .
-                        urlencode($capital) .
-                        '?format=j1'
-                    );
+                // Data cuaca yang diambil
+                'current' => 'temperature_2m,weather_code,wind_speed_10m,rain'
+            ]
+        );
 
-                    if ($response->successful()) {
+        if ($response->successful()) {
 
-                        $data = $response->json();
+            $data = $response->json();
 
-                        $weather[$supplier->id] = [
+            $current = $data['current'];
 
-                            'temp' => $data['current_condition'][0]['temp_C'],
+            // Konversi weather code menjadi teks
+            $weatherText = match ($current['weather_code']) {
 
-                            'desc' => $data['current_condition'][0]['weatherDesc'][0]['value']
+                0 => 'Clear',
 
-                        ];
+                1,2 => 'Partly Cloudy',
 
-                        // Simpan juga berdasarkan kode negara
-                        $countryWeather[$supplier->country->code] = [
+                3 => 'Cloudy',
 
-                            'temp' => $data['current_condition'][0]['temp_C'],
+                45,48 => 'Fog',
 
-                            'desc' => $data['current_condition'][0]['weatherDesc'][0]['value']
+                51,53,55 => 'Drizzle',
 
-                        ];
+                61,63,65 => 'Rain',
 
-                    }
+                71,73,75 => 'Snow',
 
-                }
+                80,81,82 => 'Rain Shower',
 
-            } catch (\Exception $e) {
-            }
+                95 => 'Thunderstorm',
+
+                default => 'Unknown'
+
+            };
+
+            $weather[$supplier->id] = [
+
+                'temp' => $current['temperature_2m'],
+
+                'desc' => $weatherText,
+
+                'rain' => $current['rain'] ?? 0,
+
+                'wind' => $current['wind_speed_10m']
+
+            ];
+
+            // Untuk popup map
+            $countryWeather[$supplier->country->code] = $weather[$supplier->id];
+
+        }
+
+    }
+
+} catch (\Exception $e) {
+}
 
             // INFLATION
             try {
 
                 $countryCode = $supplier->country->code;
+
 
                 $response = Http::timeout(10)->get(
                     'https://api.worldbank.org/v2/country/' .
@@ -383,12 +411,91 @@ if ($score >= 80) {
         } catch (\Exception $e) {
         }
 
+        // =========================
+// EXPORTS (% GDP)
+// =========================
+
+$exports = null;
+
+try {
+
+    $response = Http::timeout(10)->get(
+        'https://api.worldbank.org/v2/country/' .
+        $selectedCountry .
+        '/indicator/NE.EXP.GNFS.ZS?format=json'
+    );
+
+    if ($response->successful()) {
+
+        $data = $response->json();
+
+        if (isset($data[1])) {
+
+            foreach ($data[1] as $item) {
+
+                if ($item['value'] != null) {
+
+                    $exports = round($item['value'], 2);
+
+                    break;
+
+                }
+
+            }
+
+        }
+
+    }
+
+} catch (\Exception $e) {
+}
+
+
+// =========================
+// IMPORTS (% GDP)
+// =========================
+
+$imports = null;
+
+try {
+
+    $response = Http::timeout(10)->get(
+        'https://api.worldbank.org/v2/country/' .
+        $selectedCountry .
+        '/indicator/NE.IMP.GNFS.ZS?format=json'
+    );
+
+    if ($response->successful()) {
+
+        $data = $response->json();
+
+        if (isset($data[1])) {
+
+            foreach ($data[1] as $item) {
+
+                if ($item['value'] != null) {
+
+                    $imports = round($item['value'], 2);
+
+                    break;
+
+                }
+
+            }
+
+        }
+
+    }
+
+} catch (\Exception $e) {
+}
+
     $mapCountries = Country::with('ports')
     ->whereNotNull('latitude')
     ->whereNotNull('longitude')
     ->get();
 
-    // =========================
+// =========================
 // WEATHER FOR MAP (CACHE 30 MENIT)
 // =========================
 
@@ -406,13 +513,20 @@ foreach ($mapCountries->take(5) as $mapCountry) {
 
             try {
 
-                if (!$mapCountry->capital) {
+                if (
+                    !$mapCountry->latitude ||
+                    !$mapCountry->longitude
+                ) {
 
                     return [
 
                         'temp' => '-',
 
-                        'desc' => '-'
+                        'desc' => '-',
+
+                        'rain' => 0,
+
+                        'wind' => 0
 
                     ];
 
@@ -420,23 +534,57 @@ foreach ($mapCountries->take(5) as $mapCountry) {
 
                 $response = Http::timeout(10)->get(
 
-                    'https://wttr.in/' .
+                    'https://api.open-meteo.com/v1/forecast',
 
-                    urlencode($mapCountry->capital) .
+                    [
 
-                    '?format=j1'
+                        'latitude' => $mapCountry->latitude,
+
+                        'longitude' => $mapCountry->longitude,
+
+                        'current' => 'temperature_2m,weather_code,wind_speed_10m,rain'
+
+                    ]
 
                 );
 
                 if ($response->successful()) {
 
-                    $data = $response->json();
+                    $current = $response->json()['current'];
+
+                    $weatherText = match ($current['weather_code']) {
+
+                        0 => 'Clear',
+
+                        1,2 => 'Partly Cloudy',
+
+                        3 => 'Cloudy',
+
+                        45,48 => 'Fog',
+
+                        51,53,55 => 'Drizzle',
+
+                        61,63,65 => 'Rain',
+
+                        71,73,75 => 'Snow',
+
+                        80,81,82 => 'Rain Shower',
+
+                        95 => 'Thunderstorm',
+
+                        default => 'Unknown'
+
+                    };
 
                     return [
 
-                        'temp' => $data['current_condition'][0]['temp_C'],
+                        'temp' => $current['temperature_2m'],
 
-                        'desc' => $data['current_condition'][0]['weatherDesc'][0]['value']
+                        'desc' => $weatherText,
+
+                        'rain' => $current['rain'] ?? 0,
+
+                        'wind' => $current['wind_speed_10m']
 
                     ];
 
@@ -450,7 +598,11 @@ foreach ($mapCountries->take(5) as $mapCountry) {
 
                 'temp' => '-',
 
-                'desc' => '-'
+                'desc' => '-',
+
+                'rain' => 0,
+
+                'wind' => 0
 
             ];
 
@@ -467,24 +619,82 @@ foreach ($mapCountries->take(5) as $mapCountry) {
     ->orderBy('name')
     ->get()
     ->groupBy('country_code');
+
+    $selectedWeather = null;
+
+try {
+
+    if ($country->latitude && $country->longitude) {
+
+        $response = Http::timeout(10)->get(
+            'https://api.open-meteo.com/v1/forecast',
+            [
+                'latitude' => $country->latitude,
+                'longitude' => $country->longitude,
+                'current' => 'temperature_2m,weather_code,wind_speed_10m,rain'
+            ]
+        );
+
+        if ($response->successful()) {
+
+            $current = $response->json()['current'];
+
+            $weatherText = match ($current['weather_code']) {
+
+                0 => 'Clear',
+                1, 2 => 'Partly Cloudy',
+                3 => 'Cloudy',
+                45, 48 => 'Fog',
+                51, 53, 55 => 'Drizzle',
+                61, 63, 65 => 'Rain',
+                71, 73, 75 => 'Snow',
+                80, 81, 82 => 'Rain Shower',
+                95 => 'Thunderstorm',
+                default => 'Unknown'
+
+            };
+
+            $selectedWeather = [
+
+                'temp' => $current['temperature_2m'],
+
+                'desc' => $weatherText,
+
+                'rain' => $current['rain'] ?? 0,
+
+                'wind' => $current['wind_speed_10m']
+
+            ];
+
+        }
+
+    }
+
+} catch (\Exception $e) {
+
+    $selectedWeather = null;
+
+}
+$language = $country->language ?? '-';
+
+$favorites = FavoriteCountry::with('country')->get();
+
         return view(
-            'dashboard',
-            compact(
+        'dashboard',
+                compact(
                 'countries',
                 'country',
                 'suppliers',
                 'totalSuppliers',
-                'totalProducts',
                 'totalCountries',
-                'highRisk',
-                'mediumRisk',
-                'lowRisk',
                 'exchangeRate',
                 'weather',
                 'inflation',
                 'news',
                 'sentiments',
                 'gdp',
+                'exports',
+                'imports',
                 'geopoliticalRisk',
                 'mapCountries',
                 'ports',
@@ -493,7 +703,37 @@ foreach ($mapCountries->take(5) as $mapCountry) {
                 'recommendations',
                 'currencyHistory',
                 'countryWeather',
+                'selectedWeather',
+                'language',
+                'favorites',
             )
         );
     }
+
+public function addFavorite(Request $request)
+{
+    FavoriteCountry::firstOrCreate([
+
+        'country_code'=>$request->country
+
+    ]);
+
+    return back();
+
+}
+
+public function removeFavorite(Request $request)
+{
+
+    FavoriteCountry::where(
+
+        'country_code',
+
+        $request->country
+
+    )->delete();
+
+    return back();
+
+}
 }   

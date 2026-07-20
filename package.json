@@ -11,6 +11,9 @@
         "vite": "^5.0.0"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-free": "^7.3.1",
+        "admin-lte": "^4.1.0",
+        "bootstrap": "^5.3.8",
         "leaflet": "^1.9.4"
     }
 }

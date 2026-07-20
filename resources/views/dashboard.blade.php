@@ -22,42 +22,72 @@ margin-bottom:20px;
 ">
 </div>
 
-<h1>Global Supply Chain Dashboard</h1>
+<div class="mb-4">
 
-<hr>
+    <h2 class="fw-bold">
+        🌍 Global Supply Chain Risk Intelligence
+    </h2>
 
-<h2>Country Dashboard</h2>
+    <p class="text-muted">
+        Real-time monitoring of global supply chain risks, logistics, economy,
+        and geopolitical events.
+    </p>
 
-<form method="GET" id="countryForm">
-
-<input
-type="text"
-id="countrySearch"
-placeholder="Search Country..."
-autocomplete="off"
-value="{{ $country->name }}"
-style="width:320px;padding:8px;">
-
-<input
-type="hidden"
-name="country"
-id="countryCode"
-value="{{ $country->code }}">
-
-<div
-id="countryResult"
-style="
-border:1px solid #ccc;
-display:none;
-max-height:250px;
-overflow-y:auto;
-width:320px;
-background:white;
-position:absolute;
-z-index:999;">
 </div>
 
-</form>
+<div style="display:flex;align-items:end;gap:10px;">
+
+    <form method="GET" id="countryForm">
+
+        <input
+        type="text"
+        id="countrySearch"
+        placeholder="Search Country..."
+        autocomplete="off"
+        value="{{ $country->name }}"
+        style="width:320px;padding:8px;">
+
+        <input
+        type="hidden"
+        name="country"
+        id="countryCode"
+        value="{{ $country->code }}">
+
+        <div
+        id="countryResult"
+        style="
+        border:1px solid #ccc;
+        display:none;
+        max-height:250px;
+        overflow-y:auto;
+        width:320px;
+        background:white;
+        position:absolute;
+        z-index:999;">
+        </div>
+
+    </form>
+
+    <form
+    action="{{ route('favorite.add') }}"
+    method="POST">
+
+        @csrf
+
+        <input
+        type="hidden"
+        name="country"
+        value="{{ $country->code }}">
+
+        <button class="btn btn-warning">
+
+            ⭐ Monitor
+
+        </button>
+
+    </form>
+
+</div>
 
 <br>
 
@@ -133,11 +163,63 @@ US$ {{ number_format($gdp,0,',','.') }}
 
 <tr>
 
+<th>Language</th>
+
+<td>
+
+{{ $language }}
+
+</td>
+
+</tr>
+
+<tr>
+
 <th>Region</th>
 
 <td>
 
 {{ $country->region }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>Exports</th>
+
+<td>
+
+@if($exports)
+
+{{ number_format($exports,2) }} % GDP
+
+@else
+
+-
+
+@endif
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>Imports</th>
+
+<td>
+
+@if($imports)
+
+{{ number_format($imports,2) }} % GDP
+
+@else
+
+-
+
+@endif
 
 </td>
 
@@ -149,43 +231,53 @@ US$ {{ number_format($gdp,0,',','.') }}
 
 <hr>
 
-<h2>Statistik</h2>
+<div class="row mb-4">
 
-<table border="1" cellpadding="10">
+    <div class="col-md-3">
 
-<tr>
-<th>Total Supplier</th>
-<th>Total Product</th>
-<th>Total Negara</th>
-</tr>
+        <div class="card shadow-sm">
 
-<tr>
-<td>{{ $totalSuppliers }}</td>
-<td>{{ $totalProducts }}</td>
-<td>{{ $totalCountries }}</td>
-</tr>
+            <div class="card-body">
 
-</table>
+                <h6 class="text-muted">Supplier</h6>
 
-<br>
+                <h2>{{ $totalSuppliers }}</h2>
 
-<h2>Risk Monitoring</h2>
+            </div>
 
-<table border="1" cellpadding="10">
+        </div>
 
-<tr>
-<th>High Risk</th>
-<th>Medium Risk</th>
-<th>Low Risk</th>
-</tr>
+    </div>
 
-<tr>
-<td>{{ $highRisk }}</td>
-<td>{{ $mediumRisk }}</td>
-<td>{{ $lowRisk }}</td>
-</tr>
+    <div class="col-md-3">
 
-</table>
+        <div class="card shadow-sm">
+
+            <div class="card-body">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">Countries</h6>
+
+                <h2>{{ $totalCountries }}</h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 <br>
 
@@ -212,6 +304,10 @@ US$ {{ number_format($gdp,0,',','.') }}
 <th>Geopolitical Risk</th>
 
 <th>Risk Score</th>
+
+<th>Rainfall</th>
+
+<th>Wind Speed</th>
 
 <th>Status</th>
 
@@ -242,6 +338,10 @@ US$ {{ number_format($gdp,0,',','.') }}
 <td>
     {{ $riskScores[$supplier->id] ?? 0 }}
 </td>
+
+<td>{{ $weather[$supplier->id]['rain'] ?? '-' }} mm</td>
+
+<td>{{ $weather[$supplier->id]['wind'] ?? '-' }} km/h</td>
 
 <td>
 
@@ -309,12 +409,6 @@ Kelola Supplier
 
 |
 
-<a href="{{ route('products.index') }}">
-Kelola Product
-</a>
-
-|
-
 <a href="{{ route('simulation') }}">
 Supply Chain Simulation
 </a>
@@ -325,7 +419,10 @@ Supply Chain Simulation
 
 <script>
 
-const map = L.map('map').setView([20,0],2);
+const map = L.map('map').setView(
+[-2.5489,118.0149],
+5
+);
 
 L.tileLayer(
 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -334,13 +431,12 @@ L.tileLayer(
 }
 ).addTo(map);
 
-@foreach($mapCountries as $mapCountry)
 
 L.marker([
 {{ $country->latitude }},
 {{ $country->longitude }}
-]).addTo(map)
-
+])
+.addTo(map)
 .bindPopup(`
 
 <h3>🌍 {{ $country->name }}</h3>
@@ -352,7 +448,7 @@ L.marker([
 @if(isset($ports[$country->code]) && $ports[$country->code]->count())
 
 @php
-    $mainPorts = $ports[$country->code]->take(5);
+$mainPorts = $ports[$country->code]->take(5);
 @endphp
 
 @foreach($mainPorts as $port)
@@ -379,13 +475,21 @@ No Port Data
 
 <hr>
 
-@if(isset($countryWeather[$mapCountry->code]))
+@if(isset($selectedWeather))
 
-{{ $countryWeather[$mapCountry->code]['temp'] }}°C
+{{ $selectedWeather['temp'] }}°C
 
 <br>
 
-{{ $countryWeather[$mapCountry->code]['desc'] }}
+{{ $selectedWeather['desc'] }}
+
+<br>
+
+Rain: {{ $selectedWeather['rain'] }} mm
+
+<br>
+
+Wind: {{ $selectedWeather['wind'] }} km/h
 
 <br><br>
 
@@ -397,24 +501,8 @@ No Port Data
 
 🟢 Safe
 
-`);
-
-@endforeach
-
-</script>
-<script>
-
-new TomSelect("#countrySelect",{
-
-    create:false,
-
-    maxItems:1,
-
-    placeholder:"Search Country",
-
-    openOnFocus:false
-
-});
+`)
+.openPopup();
 
 </script>
 
@@ -539,6 +627,21 @@ document.addEventListener('click',function(e){
     }
 
 });
+
+</script>   
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+@include('partials.page-navigation')
+
+<script>
+
+const tooltipTriggerList =
+document.querySelectorAll('[data-bs-toggle="tooltip"]');
+
+[...tooltipTriggerList].map(
+el => new bootstrap.Tooltip(el)
+);
 
 </script>
 </body>

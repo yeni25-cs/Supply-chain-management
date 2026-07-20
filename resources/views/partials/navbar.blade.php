@@ -1,7 +1,21 @@
-<nav class="navbar navbar-light bg-white shadow-sm px-4">
+<nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm">
 
-    <span class="navbar-brand mb-0 h4">
-        Supply Chain Risk Intelligence System
-    </span>
+    <div class="container-fluid">
+
+        <span class="navbar-brand fw-bold">
+            🌍 Supply Chain Risk Intelligence
+        </span>
+
+        <div class="ms-auto">
+
+            <span class="text-secondary">
+
+                {{ now()->format('d M Y') }}
+
+            </span>
+
+        </div>
+
+    </div>
 
 </nav>

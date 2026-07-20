@@ -9,21 +9,24 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
 {
-    Schema::create('products', function (Blueprint $table) {
+    Schema::create('favorite_countries', function (Blueprint $table) {
+
         $table->id();
-        $table->string('name');
-        $table->foreignId('supplier_id')->constrained();
-        $table->integer('stock');
+
+        $table->string('country_code');
+
         $table->timestamps();
+
     });
 }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('products');
+        Schema::dropIfExists('favorite_countries');
     }
 };
