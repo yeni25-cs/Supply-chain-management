@@ -100,12 +100,9 @@
                     4
             </a>
 
-            <a href="{{ route('admin.dashboard') }}"
-               class="{{ request()->routeIs('admin.dashboard') ? 'active-page' : '' }}"
-               title="Admin Dashboard">
+            <a href="{{ route('admin.dashboard') }}">
                 5
             </a>
-
         </div>
 
         <button id="nextPage">&gt;</button>

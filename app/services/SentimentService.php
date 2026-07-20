@@ -14,45 +14,70 @@ class SentimentService
         $words = preg_split('/\W+/', $text);
 
         $positiveWords = PositiveWord::pluck('word')->toArray();
-
         $negativeWords = NegativeWord::pluck('word')->toArray();
 
         $positive = 0;
         $negative = 0;
+        $neutral = 0;
 
-        foreach($words as $word){
+        foreach ($words as $word) {
 
-            if(in_array($word,$positiveWords)){
+            if (trim($word) == '') {
+                continue;
+            }
+
+            if (in_array($word, $positiveWords)) {
+
                 $positive++;
-            }
 
-            if(in_array($word,$negativeWords)){
+            } elseif (in_array($word, $negativeWords)) {
+
                 $negative++;
-            }
 
+            } else {
+
+                $neutral++;
+
+            }
         }
 
-        if($positive > $negative){
+        $total = $positive + $negative + $neutral;
 
-            $sentiment="Positive";
+        if ($total == 0) {
+            $total = 1;
+        }
 
-        }elseif($negative > $positive){
+        $positivePercent = round(($positive / $total) * 100, 2);
 
-            $sentiment="Negative";
+        $negativePercent = round(($negative / $total) * 100, 2);
 
-        }else{
+        $neutralPercent = round(($neutral / $total) * 100, 2);
 
-            $sentiment="Neutral";
+        if ($positive > $negative) {
+
+            $sentiment = "Positive";
+
+        } elseif ($negative > $positive) {
+
+            $sentiment = "Negative";
+
+        } else {
+
+            $sentiment = "Neutral";
 
         }
 
         return [
 
-            'positive'=>$positive,
+            'positive' => $positive,
+            'negative' => $negative,
+            'neutral' => $neutral,
 
-            'negative'=>$negative,
+            'positive_percent' => $positivePercent,
+            'negative_percent' => $negativePercent,
+            'neutral_percent' => $neutralPercent,
 
-            'sentiment'=>$sentiment
+            'sentiment' => $sentiment
 
         ];
     }

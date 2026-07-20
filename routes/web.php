@@ -8,6 +8,7 @@ use App\Http\Controllers\SimulationController;
 use App\Http\Controllers\PortController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\CountryComparisonController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', [DashboardController::class, 'index'])
     ->name('dashboard');
@@ -21,8 +22,6 @@ Route::view('/country-comparison', 'country-comparison')
     ->name('country.comparison');
 Route::view('/favorites', 'favorites')
     ->name('favorites');
-Route::view('/admin-dashboard', 'admin-dashboard')
-    ->name('admin.dashboard');
 Route::post(
     '/ports/update-weather',
     [PortController::class,'updateWeather']
@@ -42,3 +41,11 @@ Route::post(
 '/favorite/remove',
 [DashboardController::class,'removeFavorite']
 )->name('favorite.remove');
+Route::get(
+    '/admin-dashboard',
+    [AdminController::class, 'index']
+)->name('admin.dashboard');
+Route::get(
+    '/admin/users',
+    [AdminController::class, 'users']
+)->name('admin.users');

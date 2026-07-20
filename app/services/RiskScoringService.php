@@ -5,67 +5,154 @@ namespace App\Services;
 class RiskScoringService
 {
     public function calculate(
-        $weather,
-        $inflation,
-        $sentiment,
-        $geoRisk,
-        $exchangeRate
-    ) {
-        $score = 0;
+    $weather,
+    $inflation,
+    $sentiment,
+    $geoRisk,
+    $exchangeRate
+)
+{
+    /*
+    ======================
+    WEATHER
+    ======================
+    */
 
-        // WEATHER
-        $weather = strtolower($weather);
+    $weather = strtolower($weather);
 
-        if (
-            str_contains($weather, 'storm') ||
-            str_contains($weather, 'thunder')
-        ) {
-            $score += 25;
-        } elseif (
-            str_contains($weather, 'rain')
-        ) {
-            $score += 15;
-        }
+    if (
+        str_contains($weather,'storm') ||
+        str_contains($weather,'thunder')
+    ){
 
-        // INFLATION
-        if ($inflation >= 10) {
-            $score += 20;
-        } elseif ($inflation >= 5) {
-            $score += 10;
-        }
+        $weatherRisk = 100;
 
-        // NEWS SENTIMENT
-        if ($sentiment == 'negative') {
-            $score += 25;
-        } elseif ($sentiment == 'neutral') {
-            $score += 10;
-        }
+    }
+    elseif(
+        str_contains($weather,'rain')
+    ){
 
-        // GEOPOLITICAL
-        if ($geoRisk == 'HIGH') {
-            $score += 25;
-        } elseif ($geoRisk == 'MEDIUM') {
-            $score += 15;
-        }
+        $weatherRisk = 60;
 
-        // EXCHANGE RATE
-        if ($exchangeRate >= 17000) {
-            $score += 10;
-        }
+    }
+    elseif(
+        str_contains($weather,'cloud')
+    ){
 
-        return min($score, 100);
+        $weatherRisk = 30;
+
+    }
+    else{
+
+        $weatherRisk = 10;
+
     }
 
-    public function status($score)
-    {
-        if ($score >= 80) {
-            return 'HIGH';
-        }
+    /*
+    ======================
+    INFLATION
+    ======================
+    */
 
-        if ($score >= 50) {
-            return 'MEDIUM';
-        }
+    if($inflation >= 10){
 
-        return 'LOW';
+        $inflationRisk = 100;
+
     }
+    elseif($inflation >= 5){
+
+        $inflationRisk = 60;
+
+    }
+    elseif($inflation >= 3){
+
+        $inflationRisk = 30;
+
+    }
+    else{
+
+        $inflationRisk = 10;
+
+    }
+
+    /*
+    ======================
+    POLITICAL / NEWS
+    ======================
+    */
+
+    $sentiment = strtolower($sentiment);
+
+    if($geoRisk == 'HIGH'){
+
+        $politicalRisk = 100;
+
+    }
+    elseif($geoRisk == 'MEDIUM'){
+
+        $politicalRisk = 70;
+
+    }
+    elseif($sentiment == 'negative'){
+
+        $politicalRisk = 90;
+
+    }
+    elseif($sentiment == 'neutral'){
+
+        $politicalRisk = 50;
+
+    }
+    else{
+
+        $politicalRisk = 10;
+
+    }
+
+    /*
+    ======================
+    CURRENCY
+    ======================
+    */
+
+    if($exchangeRate >= 17000){
+
+        $currencyRisk = 90;
+
+    }
+    elseif($exchangeRate >= 16000){
+
+        $currencyRisk = 60;
+
+    }
+    else{
+
+        $currencyRisk = 10;
+
+    }
+
+    /*
+    ======================
+    WEIGHTED MODEL
+    ======================
+    */
+
+    $score =
+
+        ($weatherRisk * 0.30)
+
+        +
+
+        ($inflationRisk * 0.20)
+
+        +
+
+        ($politicalRisk * 0.40)
+
+        +
+
+        ($currencyRisk * 0.10);
+
+    return round($score,2);
+}
 }

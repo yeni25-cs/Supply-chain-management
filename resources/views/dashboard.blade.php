@@ -632,6 +632,86 @@ document.addEventListener('click',function(e){
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<hr>
+
+<h3>⭐ Favorite Monitoring</h3>
+
+@if($favorites->count())
+
+<table class="table table-bordered">
+
+    <thead>
+
+        <tr>
+
+            <th>Country</th>
+
+            <th>Capital</th>
+
+            <th>Region</th>
+
+            <th>Action</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        @foreach($favorites as $fav)
+
+        <tr>
+
+            <td>
+
+               {{ optional($fav->country)->name ?? '-' }}
+                {{ optional($fav->country)->capital ?? '-' }}
+                {{ optional($fav->country)->region ?? '-' }}
+
+            </td>
+
+            <td>
+
+                <form
+                    action="{{ route('favorite.remove') }}"
+                    method="POST">
+
+                    @csrf
+
+                    <input
+                        type="hidden"
+                        name="country"
+                        value="{{ $fav->country_code }}">
+
+                    <button
+                        class="btn btn-danger btn-sm">
+
+                        Remove
+
+                    </button>
+
+                </form>
+
+            </td>
+
+        </tr>
+
+        @endforeach
+
+    </tbody>
+
+</table>
+
+@else
+
+<div class="alert alert-info">
+
+    No monitored countries yet.
+
+</div>
+
+@endif
+
 @include('partials.page-navigation')
 
 <script>
