@@ -5,7 +5,7 @@
 <div class="container">
 
     <h2 class="fw-bold mb-1">
-        ⚙️ Admin Dashboard
+        Admin Dashboard
     </h2>
 
     <p class="text-muted mb-4">
@@ -82,16 +82,15 @@
             <div class="card shadow h-100">
                 <div class="card-body">
 
-                    <h5>👤 User Management</h5>
+                    <h5>User Management</h5>
 
                     <p class="text-muted">
                         Manage administrator and user accounts.
                     </p>
 
-                    <a href="{{ route('admin.users') }}" class="btn btn-primary w-100">
+                    <a href="{{ route('admin.users') }}"class="btn btn-primary w-100">
                         Open
                     </a>
-
                 </div>
             </div>
         </div>
@@ -100,7 +99,7 @@
             <div class="card shadow h-100">
                 <div class="card-body">
 
-                    <h5>🚢 Port Dataset</h5>
+                    <h5>Port Dataset</h5>
 
                     <p class="text-muted">
                         Add, edit and delete port information.
@@ -118,13 +117,13 @@
             <div class="card shadow h-100">
                 <div class="card-body">
 
-                    <h5>📰 Analysis Articles</h5>
+                    <h5>Analysis Articles</h5>
 
                     <p class="text-muted">
                         Manage analysis and intelligence reports.
                     </p>
 
-                    <a href="#" class="btn btn-warning w-100">
+                    <a href="{{ route('admin.articles') }}"class="btn btn-warning w-100">
                         Open
                     </a>
 
@@ -137,7 +136,7 @@
 
         <div class="card-body">
 
-            <h5>🛰️ API Status</h5>
+            <h5>API Status</h5>
 
             <p class="text-muted">
 
@@ -147,13 +146,13 @@
 
             <ul class="list-unstyled mb-3">
 
-                <li>🟢 Weather API</li>
+                <li>Weather API</li>
 
-                <li>🟢 World Bank API</li>
+                <li>World Bank API</li>
 
-                <li>🟢 Exchange Rate API</li>
+                <li>Exchange Rate API</li>
 
-                <li>🟢 Google News RSS</li>
+                <li>Google News RSS</li>
 
             </ul>
 
@@ -166,7 +165,7 @@
 
     <div class="card-header fw-bold">
 
-        ℹ️ System Information
+        System Information
 
     </div>
 

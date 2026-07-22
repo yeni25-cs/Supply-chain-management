@@ -9,6 +9,7 @@ use App\Http\Controllers\PortController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\CountryComparisonController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
 
 Route::get('/', [DashboardController::class, 'index'])
     ->name('dashboard');
@@ -20,8 +21,10 @@ Route::get('/ports', [PortController::class, 'index'])
     ->name('ports.index');
 Route::view('/country-comparison', 'country-comparison')
     ->name('country.comparison');
-Route::view('/favorites', 'favorites')
-    ->name('favorites');
+Route::get(
+    '/favorites',
+    [DashboardController::class, 'favorites']
+)->name('favorites');
 Route::post(
     '/ports/update-weather',
     [PortController::class,'updateWeather']
@@ -49,3 +52,23 @@ Route::get(
     '/admin/users',
     [AdminController::class, 'users']
 )->name('admin.users');
+Route::get(
+    '/admin/articles',
+    [AdminController::class, 'articles']
+)->name('admin.articles');
+// ===========================
+// Authentication
+// ===========================
+
+Route::get('/login', [AuthController::class, 'showLogin'])
+    ->name('login');
+
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/register', [AuthController::class, 'showRegister'])
+    ->name('register');
+
+Route::post('/register', [AuthController::class, 'register']);
+
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->name('logout');

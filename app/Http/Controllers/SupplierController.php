@@ -34,56 +34,55 @@ class SupplierController extends Controller
         );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required',
-            'country_id' => 'required',
-            'contact' => 'required'
-        ]);
+        public function store(Request $request)
+        {
+            $request->validate([
+                'name' => 'required',
+                'country_id' => 'required',
+                'contact' => 'required'
+            ]);
 
-        Supplier::create($request->all());
+            Supplier::create($request->all());
 
-        return redirect()
-                ->route('suppliers.index')
-                ->with(
-                    'success',
-                    'Supplier berhasil ditambahkan.'
-                );
-    }
+            return redirect()
+                    ->route('suppliers.index')
+                    ->with(
+                        'success',
+                        'Supplier berhasil ditambahkan.'
+                    );
+        }
+public function edit(Supplier $supplier)
+{
+    $countries = Country::all();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+    return view('suppliers.edit', compact('supplier', 'countries'));
+}
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+public function update(Request $request, Supplier $supplier)
+{
+    $request->validate([
+        'name' => 'required',
+        'country_id' => 'required',
+        'contact' => 'required'
+    ]);
 
-    /**
-     * Update the specified resource.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+    $supplier->update([
+        'name' => $request->name,
+        'country_id' => $request->country_id,
+        'contact' => $request->contact,
+    ]);
 
-    /**
-     * Remove the specified resource.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+    return redirect()
+        ->route('suppliers.index')
+        ->with('success', 'Supplier berhasil diperbarui.');
+}
+
+public function destroy(Supplier $supplier)
+{
+    $supplier->delete();
+
+    return redirect()
+        ->route('suppliers.index')
+        ->with('success', 'Supplier berhasil dihapus.');
+}
 }

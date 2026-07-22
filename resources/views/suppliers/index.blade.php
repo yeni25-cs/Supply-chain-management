@@ -5,6 +5,18 @@
 </head>
 <body>
 
+<div style="margin-bottom:20px;">
+    <a href="{{ route('dashboard') }}"
+       style="
+            text-decoration:none;
+            font-size:30px;
+            color:black;
+            font-weight:bold;
+       ">
+        ←
+    </a>
+</div>
+
 <h1>Daftar Supplier</h1>
 
 <a href="{{ route('suppliers.create') }}">Tambah Supplier</a>
@@ -19,6 +31,7 @@
         <th>Nama</th>
         <th>Negara</th>
         <th>Kontak</th>
+        <th>Aksi</th>
     </tr>
 
     @foreach($suppliers as $supplier)
@@ -27,6 +40,34 @@
         <td>{{ $supplier->name }}</td>
         <td>{{ $supplier->country?->name ?? 'Belum dipilih' }}</td>
         <td>{{ $supplier->contact }}</td>
+
+        <td>
+
+            <a href="{{ route('suppliers.edit', $supplier->id) }}">
+                Edit
+            </a>
+
+            |
+
+            <form action="{{ route('suppliers.destroy', $supplier->id) }}"
+                  method="POST"
+                  style="display:inline;">
+
+                @csrf
+                @method('DELETE')
+
+                <button
+                    type="submit"
+                    onclick="return confirm('Yakin ingin menghapus supplier ini?')">
+
+                    Hapus
+
+                </button>
+
+            </form>
+
+        </td>
+
     </tr>
     @endforeach
 

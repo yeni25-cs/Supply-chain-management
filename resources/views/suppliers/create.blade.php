@@ -5,6 +5,18 @@
 </head>
 <body>
 
+<div style="margin-bottom:20px;">
+    <a href="{{ route('dashboard') }}"
+       style="
+            text-decoration:none;
+            font-size:30px;
+            color:black;
+            font-weight:bold;
+       ">
+        ←
+    </a>
+</div>
+
 <h1>Tambah Supplier</h1>
 
 <form action="{{ route('suppliers.store') }}" method="POST">

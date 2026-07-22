@@ -155,4 +155,65 @@ class RiskScoringService
 
     return round($score,2);
 }
+
+public function status($score)
+{
+    if ($score >= 80) {
+        return 'HIGH';
+    }
+
+    if ($score >= 50) {
+        return 'MEDIUM';
+    }
+
+    return 'LOW';
+}
+
+public function recommendation($status)
+{
+    switch($status){
+
+        case 'HIGH':
+
+            return [
+
+                'Increase safety stock',
+
+                'Use alternative suppliers',
+
+                'Avoid affected ports',
+
+                'Monitor every day'
+
+            ];
+
+        case 'MEDIUM':
+
+            return [
+
+                'Monitor logistics routes',
+
+                'Prepare backup suppliers',
+
+                'Review inventory',
+
+                'Weekly monitoring'
+
+            ];
+
+        default:
+
+            return [
+
+                'Supply chain is stable',
+
+                'Normal procurement',
+
+                'Continue monitoring',
+
+                'Monthly review'
+
+            ];
+    }
+}
 }

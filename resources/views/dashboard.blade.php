@@ -1,24 +1,291 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Global Supply Chain Dashboard</title>
-    <link
-rel="stylesheet"
-href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css"
+          rel="stylesheet">
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+
+        body{
+            margin:0;
+            font-family:'Poppins',sans-serif;
+            background:#f5f7fb;
+        }
+
+        .topbar{
+
+            height:72px;
+
+            background:#0F172A;
+
+            display:flex;
+
+            align-items:center;
+
+            justify-content:space-between;
+
+            padding:0 35px;
+
+            box-shadow:0 3px 12px rgba(0,0,0,.15);
+
+        }
+
+        .brand{
+
+            color:white;
+
+            font-size:26px;
+
+            font-weight:700;
+
+            letter-spacing:.5px;
+
+        }
+
+        .topbar-center{
+
+            flex:1;
+
+            display:flex;
+
+            justify-content:center;
+
+        }
+        .topbar-search{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.topbar-search input[type="text"]{
+    width:320px !important;
+    padding:10px 15px !important;
+    border:none;
+    border-radius:25px;
+    outline:none;
+    font-size:15px;
+    font-family:'Poppins',sans-serif;
+}
+
+.topbar-search button{
+    padding:10px 18px;
+    border:none;
+    border-radius:25px;
+    background:#2563EB;
+    color:white;
+    font-weight:500;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.topbar-search button:hover{
+    background:#1D4ED8;
+}
+
+        .topbar-right{
+
+            display:flex;
+
+            align-items:center;
+
+            gap:15px;
+
+        }
+
+    </style>
 
 </head>
+
 <body>
 
-<h2>🌍 Global Risk Map</h2>
+    <!-- =========================
+         TOP BAR
+    ========================== -->
 
+    <nav class="topbar">
+
+        <div class="brand">
+            🌍 ChainPulse AI
+        </div>
+
+        <div class="topbar-center">
+
+         <div class="topbar-center">
+
+    <div class="topbar-search">
+
+        <form method="GET" id="countryForm">
+
+            <input
+                type="text"
+                id="countrySearch"
+                placeholder="🔍 Search Country..."
+                autocomplete="off"
+                value="{{ $country->name }}">
+
+            <input
+                type="hidden"
+                name="country"
+                id="countryCode"
+                value="{{ $country->code }}">
+
+            <div
+                id="countryResult"
+                style="
+                    border:1px solid #ccc;
+                    display:none;
+                    max-height:250px;
+                    overflow-y:auto;
+                    width:320px;
+                    background:white;
+                    position:absolute;
+                    z-index:9999;
+                    border-radius:12px;
+                    margin-top:5px;
+                ">
+            </div>
+
+        </form>
+
+        <form
+            action="{{ route('favorite.add') }}"
+            method="POST">
+
+            @csrf
+
+            <input
+                type="hidden"
+                name="country"
+                value="{{ $country->code }}">
+
+            <button type="submit">
+
+                Add Favorite
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+        </div>
+
+        <div class="topbar-right">
+
+<div style="position:relative;">
+
+        <button
+            onclick="toggleMenu()"
+            style="
+                font-size:28px;
+                border:none;
+                background:none;
+                cursor:pointer;
+                color:white;
+            ">
+            ☰
+        </button>
+
+        <div
+            id="menuDropdown"
+            style="
+                display:none;
+                position:absolute;
+                right:0;
+                top:40px;
+                background:white;
+                min-width:220px;
+                border:1px solid #ddd;
+                border-radius:8px;
+                box-shadow:0 4px 10px rgba(247, 243, 243, 0.2);
+                z-index:9999;
+            ">
+
+            <a
+                href="{{ route('suppliers.index') }}"
+                style="
+                    display:block;
+                    padding:12px;
+                    color:black;
+                    text-decoration:none;
+                ">
+                Kelola Supplier
+            </a>
+
+            <a
+                href="{{ route('favorites') }}"
+                style="
+                    display:block;
+                    padding:12px;
+                    color:black;
+                    text-decoration:none;
+                ">
+                Favorite Monitoring
+            </a>
+
+<hr style="margin:8px 0;">
+
+<form action="{{ route('logout') }}" method="POST">
+
+    @csrf
+
+    <button
+        type="submit"
+        style="
+            width:100%;
+            border:none;
+            background:none;
+            text-align:left;
+            padding:12px 15px;
+            cursor:pointer;
+            color:#dc3545;
+            font-size:16px;
+        "
+        onmouseover="this.style.background='#f8f9fa'"
+        onmouseout="this.style.background='white'">
+
+        🚪 Logout
+
+    </button>
+
+        </form>
+        </div>
+    </div>
+
+        </div>
+
+    </nav>
+
+
+<div class="main-content">
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; position:relative;">
+
+</div>
 <div
 id="map"
 style="
 height:600px;
-width:100%;
+width:85%;
+margin:25px auto 35px auto;
 border:1px solid #ddd;
-margin-bottom:20px;
+border-radius:15px;
+box-shadow:0 4px 12px rgba(0,0,0,.08);
 ">
 </div>
 
@@ -31,7 +298,7 @@ margin-bottom:20px;
     <p class="text-muted">
         Real-time monitoring of global supply chain risks, logistics, economy,
         and geopolitical events.
-    </p>
+    </p>    
 
 </div>
 
@@ -81,7 +348,7 @@ margin-bottom:20px;
 
         <button class="btn btn-warning">
 
-            ⭐ Monitor
+            Add Favorite
 
         </button>
 
@@ -291,27 +558,13 @@ US$ {{ number_format($gdp,0,',','.') }}
 
 <th>Country</th>
 
-<th>Currency</th>
-
-<th>Weather</th>
-
-<th>Temperature</th>
-
 <th>Inflation</th>
 
 <th>Latest News</th>
 
 <th>Geopolitical Risk</th>
 
-<th>Risk Score</th>
-
-<th>Rainfall</th>
-
-<th>Wind Speed</th>
-
 <th>Status</th>
-
-<th>Recommendation</th>
 
 </tr>
 
@@ -323,12 +576,6 @@ US$ {{ number_format($gdp,0,',','.') }}
 
 <td>{{ $supplier->country?->name ?? '-' }}</td>
 
-<td>{{ $supplier->country?->currency ?? '-' }}</td>
-
-<td>{{ $weather[$supplier->id]['desc'] ?? '-' }}</td>
-
-<td>{{ $weather[$supplier->id]['temp'] ?? '-' }} °C</td>
-
 <td>{{ $inflation[$supplier->id] ?? '-' }} %</td>
 
 <td>{{ $news[$supplier->id] ?? '-' }}</td>
@@ -336,34 +583,19 @@ US$ {{ number_format($gdp,0,',','.') }}
 <td>{{ $geopoliticalRisk[$supplier->id] ?? '-' }}</td>
 
 <td>
-    {{ $riskScores[$supplier->id] ?? 0 }}
-</td>
-
-<td>{{ $weather[$supplier->id]['rain'] ?? '-' }} mm</td>
-
-<td>{{ $weather[$supplier->id]['wind'] ?? '-' }} km/h</td>
-
-<td>
-
 @if(($riskStatus[$supplier->id] ?? '') == 'HIGH')
 
-🔴 High
+High
 
 @elseif(($riskStatus[$supplier->id] ?? '') == 'MEDIUM')
 
-🟡 Medium
+Medium
 
 @else
 
-🟢 Low
+Low
 
 @endif
-
-</td>
-
-<td>
-
-{{ $recommendations[$supplier->id] ?? '-' }}
 
 </td>
 
@@ -393,25 +625,13 @@ US$ {{ number_format($gdp,0,',','.') }}
 
 <hr>
 
-<h2>📈 Currency Impact Dashboard</h2>
+<h2>Currency Impact Dashboard</h2>
 
 <canvas
 id="currencyChart"
 width="900"
 height="300">
 </canvas>
-
-<br><br>
-
-<a href="{{ route('suppliers.index') }}">
-Kelola Supplier
-</a>
-
-|
-
-<a href="{{ route('simulation') }}">
-Supply Chain Simulation
-</a>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -441,7 +661,7 @@ L.marker([
 
 <h3>🌍 {{ $country->name }}</h3>
 
-<b>🚢 Ports</b>
+<b>Ports</b>
 
 <br><br>
 
@@ -499,7 +719,7 @@ Wind: {{ $selectedWeather['wind'] }} km/h
 
 <br>
 
-🟢 Safe
+Safe
 
 `)
 .openPopup();
@@ -632,86 +852,6 @@ document.addEventListener('click',function(e){
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<hr>
-
-<h3>⭐ Favorite Monitoring</h3>
-
-@if($favorites->count())
-
-<table class="table table-bordered">
-
-    <thead>
-
-        <tr>
-
-            <th>Country</th>
-
-            <th>Capital</th>
-
-            <th>Region</th>
-
-            <th>Action</th>
-
-        </tr>
-
-    </thead>
-
-    <tbody>
-
-        @foreach($favorites as $fav)
-
-        <tr>
-
-            <td>
-
-               {{ optional($fav->country)->name ?? '-' }}
-                {{ optional($fav->country)->capital ?? '-' }}
-                {{ optional($fav->country)->region ?? '-' }}
-
-            </td>
-
-            <td>
-
-                <form
-                    action="{{ route('favorite.remove') }}"
-                    method="POST">
-
-                    @csrf
-
-                    <input
-                        type="hidden"
-                        name="country"
-                        value="{{ $fav->country_code }}">
-
-                    <button
-                        class="btn btn-danger btn-sm">
-
-                        Remove
-
-                    </button>
-
-                </form>
-
-            </td>
-
-        </tr>
-
-        @endforeach
-
-    </tbody>
-
-</table>
-
-@else
-
-<div class="alert alert-info">
-
-    No monitored countries yet.
-
-</div>
-
-@endif
-
 @include('partials.page-navigation')
 
 <script>
@@ -724,5 +864,37 @@ el => new bootstrap.Tooltip(el)
 );
 
 </script>
+
+<script>
+
+function toggleMenu(){
+
+    var menu = document.getElementById("menuDropdown");
+
+    if(menu.style.display=="block"){
+
+        menu.style.display="none";
+
+    }else{
+
+        menu.style.display="block";
+
+    }
+
+}
+
+window.onclick = function(e){
+
+    if(!e.target.matches('button')){
+
+        document.getElementById("menuDropdown").style.display="none";
+
+    }
+
+}
+
+</script>
+
+</div>
 </body>
 </html>

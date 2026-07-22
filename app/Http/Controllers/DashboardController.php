@@ -736,4 +736,11 @@ public function removeFavorite(Request $request)
     return back();
 
 }
+
+public function favorites()
+{
+    $favorites = FavoriteCountry::with('country')->get();
+
+    return view('favorites', compact('favorites'));
+}
 }   
